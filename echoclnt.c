@@ -1,14 +1,3 @@
-/*
-
-  ECHOCLNT.C
-  ==========
-  (c) Paul Griffiths, 1999
-  Email: mail@paulgriffiths.net
-  
-  Simple TCP/IP echo client.
-
-*/
-
 
 #include <sys/socket.h>       /*  socket definitions        */
 #include <sys/types.h>        /*  socket types              */
@@ -22,14 +11,11 @@
 #include <stdio.h>
 #include <string.h>
 
+void send_all(int socket, char *buffer, long length);
+
 /*  Global constants  */
 
 #define MAX_LINE           (1000)
-
-
-/*  Function declarations  */
-
-
 
 
 /*  main()  */
@@ -98,17 +84,13 @@ int main(int argc, char *argv[]) {
 	exit(EXIT_FAILURE);
     }
 
-
-    /*  Get string to echo from user  */
-
-//    printf("Enter the string to echo: \n");
-//    char buffer1[10] = {'a','b','c','d','e','f','g','h','i','j'};
-//    fgets(buffer, MAX_LINE, stdin);
-    //store the file length so that can be sent to the client and later use to allocate the length for filename in server
-    uint8_t filename_length = strlen(toName);
-
+    
     //open the file that we are reading from
     FILE* fp = fopen(filepath,"rb");
+    if (fp == NULL) {
+        perror("Could not open file");
+        return EXIT_FAILURE;
+    }
     fseek(fp,0,SEEK_END);
     int file_length = ftell(fp);
     rewind(fp);
@@ -117,13 +99,17 @@ int main(int argc, char *argv[]) {
     printf("%d\n", file_length);
 
 
-    char file_buffer[file_length];
+    char *file_buffer = malloc(file_length);
+    if(file_buffer == NULL){
+        printf("Memory allocation failed\n");
+        return EXIT_FAILURE;
+    }
 
 
     int num_of_items = fread(file_buffer, 1, file_length, fp);
+    fclose(fp);
     
-
-    //just reading the file
+    //printing the contents of file
     for (int j=0; j<num_of_items; j++) {
         printf("%d == %d\n", j+1,file_buffer[j]);
     }
@@ -134,26 +120,33 @@ int main(int argc, char *argv[]) {
         printf("Error reading file\n");
     }
 
+    if (strlen(toName) > 255) {
+        printf("Filename is too long\n");
+        return EXIT_FAILURE;
+    }
+
+    uint8_t filename_length = strlen(toName);
 
     //printf("%c\n", file_buffer[0]);
     printf("%d the filename length\n",filename_length);
+    uint32_t network_file_length = htonl((uint32_t)file_length);
 
     //copying the address of meta information of the file and the required specification to the server
-    memcpy(buffer, toFormat,1);
-    memcpy(buffer+1, &filename_length,1);
-    memcpy(buffer+2, toName, filename_length);
-    memcpy(buffer+2+filename_length, &file_length, 4);
-    memcpy(buffer+6+filename_length, file_buffer, num_of_items);
+    char header[6 + 255];
+    
+    memcpy(header, toFormat, 1);
+    memcpy(header + 1, &filename_length, 1);
+    memcpy(header + 2, toName, filename_length);
+    memcpy(header + 2 + filename_length,
+        &network_file_length,
+        sizeof(network_file_length));
 
-    // printf("The file _length is %d\n",file_length);
-    // memcpy(buffer,&file_length,sizeof(uint8_t));
-    // memcpy(buffer+sizeof(uint8_t),&toFormat,sizeof(char));
-    // memcpy(buffer+sizeof(uint8_t)+sizeof(char),&filename_length, sizeof(uint8_t));
-    // memcpy(buffer+ 2* sizeof(uint8_t)+sizeof(char), toName, filename_length);
+    send_all(conn_s, header, 6 + filename_length);
+    send_all(conn_s, file_buffer, file_length);
+
+    free(file_buffer);
+
     
-    // memcpy(buffer+2*sizeof(uint8_t)+1+filename_length,file_buffer, file_length);
-    
-    write(conn_s, buffer, MAX_LINE);
     /*  Send string to echo server, and retrieve response  */
     char connection_response[100];
    
@@ -163,6 +156,23 @@ int main(int argc, char *argv[]) {
     printf("Echo response: %s \n", connection_response);
     return EXIT_SUCCESS;
 }
+
+void send_all(int socket, char *buffer, long length) {
+    long sent = 0;
+
+    while (sent < length) {
+        int result = write(socket, buffer + sent, length - sent);
+
+        if (result <= 0) {
+            printf("Error sending file\n");
+            return;
+        }
+
+        sent += result;
+    }
+}
+
+
 
 
 
