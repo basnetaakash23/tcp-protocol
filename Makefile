@@ -1,25 +1,34 @@
-echoserv: echoserv.o helper.o
-	gcc -o echoserv echoserv.o helper.o -Wall
+CC := cc
+CPPFLAGS := -Iinclude
+CFLAGS := -std=c11 -Wall -Wextra -Wpedantic
 
-echoserv.o: echoserv.c helper.h
-	gcc -o echoserv.o echoserv.c -c -ansi -pedantic -Wall
+BUILD_DIR := build
+BIN_DIR := bin
+SERVER := $(BIN_DIR)/echoserv
+CLIENT := $(BIN_DIR)/echoclnt
+CONVERTER_OBJ := $(BUILD_DIR)/converter.o
 
-helper.o: helper.c helper.h
-	gcc -o helper.o helper.c -c -ansi -pedantic -Wall
+.PHONY: all clean
 
-echoclnt: echoclnt.o helper.o
-	gcc -o echoclnt echoclnt.o helper.o -Wall
+all: $(SERVER) $(CLIENT)
 
-echoclnt.o: echoclnt.c helper.h
-	gcc -o echoclnt.o echoclnt.c -c -ansi -pedantic -Wall
+$(SERVER): $(BUILD_DIR)/server.o $(CONVERTER_OBJ) | $(BIN_DIR)
+	$(CC) $^ -o $@
 
+$(CLIENT): $(BUILD_DIR)/client.o | $(BIN_DIR)
+	$(CC) $^ -o $@
 
+$(BUILD_DIR)/server.o: src/server.c include/converter.h | $(BUILD_DIR)
+	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
 
+$(BUILD_DIR)/client.o: src/client.c | $(BUILD_DIR)
+	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
 
+$(CONVERTER_OBJ): src/converter.c include/converter.h | $(BUILD_DIR)
+	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
 
+$(BUILD_DIR) $(BIN_DIR):
+	mkdir -p $@
 
-
-
-
-
-
+clean:
+	rm -rf $(BUILD_DIR) $(BIN_DIR)

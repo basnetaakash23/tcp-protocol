@@ -21,7 +21,7 @@
 //
 #include "stdint.h"
 #include "inttypes.h"
-#include "helper.h"
+#include "converter.h"
 #include <sys/socket.h>
 #include <unistd.h>
 #include <errno.h>
@@ -250,7 +250,6 @@ void convert_to_typeZero(FILE* pointer, uint8_t amount, short numbers[]){
         //printf("Converted\n");
         
     }
-
 
 
 

@@ -14,14 +14,11 @@
 */
 
 
-#ifndef PG_SOCK_HELP
-#define PG_SOCK_HELP
+#ifndef CONVERTER_H
+#define CONVERTER_H
 
-
-#include <unistd.h>             /*  for ssize_t data type  */
+#include <stdint.h>
 #include <stdio.h>
-
-#define LISTENQ        (1024)   /*  Backlog for listen()   */
 
 
 /*  Function declarations  */
@@ -31,10 +28,4 @@ void convert_to_typeOne(FILE* pointer,  uint8_t amount, uint16_t numbers[]);
 int typefirst_input(int pos, char* binary_buffer, FILE *pointer, char* convert_option);
 void convert_to_typeZero(FILE* pointer, uint8_t amount, short numbers[]);
 
-
-ssize_t Readline(int fd, void *vptr, size_t maxlen);
-ssize_t Writeline(int fc, const void *vptr, size_t maxlen);
-
-
-#endif  /*  PG_SOCK_HELP  */
-
+#endif  /* CONVERTER_H */

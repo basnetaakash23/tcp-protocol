@@ -15,7 +15,7 @@
 #include <arpa/inet.h>        /*  inet (3) funtions         */
 #include <unistd.h>           /*  misc. UNIX functions      */
 
-#include "helper.h"           /*  our own helper functions  */
+#include "converter.h"        /*  file conversion functions */
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -26,6 +26,7 @@
 
 #define ECHO_PORT          (2002)
 #define MAX_LINE           (1000)
+#define LISTENQ            (1024)
 
 
 int main(int argc, char *argv[]) {

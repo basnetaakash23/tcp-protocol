@@ -4,8 +4,7 @@
 #include <arpa/inet.h>        /*  inet (3) funtions         */
 #include <unistd.h>           /*  misc. UNIX functions      */
 
-#include "helper.h"           /*  Our own helper functions  */
-
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -171,7 +170,6 @@ void send_all(int socket, char *buffer, long length) {
         sent += result;
     }
 }
-
 
 
 
